@@ -31,25 +31,16 @@ public class MyForm : System.Windows.Forms.Form
         this.pictureBox1 = new System.Windows.Forms.PictureBox();
         ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
         this.SuspendLayout();
-        // 
-        // pictureBox1
-        // 
-        this.pictureBox1.Location = new System.Drawing.Point(2, 2);
-        this.pictureBox1.Name = "pictureBox1";
+
+        this.pictureBox1.Location = new System.Drawing.Point(1, 1);
         this.pictureBox1.Size = new System.Drawing.Size(image_width, image_height);
-        this.pictureBox1.TabIndex = 0;
-        this.pictureBox1.TabStop = false;
+
         this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
         this.pictureBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseClick);
-        // 
-        // Form1
-        // 
-        this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-        this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(image_width + 4, image_height + 4);
+
+        this.ClientSize = new System.Drawing.Size(image_width + 2, image_height + 2);
         this.Controls.Add(this.pictureBox1);
-        this.Name = "Form1";
-        this.Text = "Form1";
+
         ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
         this.ResumeLayout(false);
 
@@ -77,11 +68,11 @@ public class MyForm : System.Windows.Forms.Form
         int w = myBitmap.Width;
         if(e.Button == MouseButtons.Right)
         {
-            zoom = zoom * 2f;
+            zoom = zoom * 1.5f;
         }
         else
         {
-            zoom = zoom / 2f;
+            zoom = zoom / 1.5f;
             uc = ((double)coordinates.X / w) * zoom - zoom / 2f + uc;
             vc = ((double)coordinates.Y / h) * zoom - zoom / 2f + vc;
         }
@@ -129,7 +120,12 @@ public class MyForm : System.Windows.Forms.Form
                     double m = zr * zr + zi * zi;
                     if (m > 4)
                     {
-                        float t = ((float)(i % 64)) / 63;
+                        int iterations = i % 256;
+                        if(iterations >= 128)
+                        {
+                            iterations = 255 - iterations;
+                        }
+                        float t = ((float)(iterations % 128)) / 127;
                         red = (int)((r1 - r0) * t + r0);
                         green = (int)((g1 - g0) * t + g0);
                         blue = (int)((b1 - b0) * t + b0);
