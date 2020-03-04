@@ -12,6 +12,7 @@ public class MyForm : System.Windows.Forms.Form
     double vc = 0.0f;
     int image_width = 512;
     int image_height = 512;
+    const int scale = 1;
 
     private System.Windows.Forms.PictureBox pictureBox1;
 
@@ -33,12 +34,12 @@ public class MyForm : System.Windows.Forms.Form
         this.SuspendLayout();
 
         this.pictureBox1.Location = new System.Drawing.Point(1, 1);
-        this.pictureBox1.Size = new System.Drawing.Size(image_width, image_height);
+        this.pictureBox1.Size = new System.Drawing.Size(image_width/scale, image_height/scale);
 
         this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
         this.pictureBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseClick);
 
-        this.ClientSize = new System.Drawing.Size(image_width + 2, image_height + 2);
+        this.ClientSize = new System.Drawing.Size(image_width/scale + 2, image_height/scale + 2);
         this.Controls.Add(this.pictureBox1);
 
         ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -55,7 +56,7 @@ public class MyForm : System.Windows.Forms.Form
     private void pictureBox1_Paint(object sender, PaintEventArgs e)
     {
         Graphics g = e.Graphics;
-        g.DrawImage(myBitmap, 0, 0, myBitmap.Width, myBitmap.Height);
+        g.DrawImage(myBitmap, 0, 0, myBitmap.Width/scale, myBitmap.Height/scale);
         Refresh();
     }
 
@@ -64,8 +65,8 @@ public class MyForm : System.Windows.Forms.Form
         MouseEventArgs me = (MouseEventArgs)e;
         Point coordinates = me.Location;
 
-        int h = myBitmap.Height;
-        int w = myBitmap.Width;
+        int h = myBitmap.Height/scale;
+        int w = myBitmap.Width/scale;
         if(e.Button == MouseButtons.Right)
         {
             zoom = zoom * 1.5f;
@@ -85,63 +86,62 @@ public class MyForm : System.Windows.Forms.Form
     {
         int h = myBitmap.Height;
         int w = myBitmap.Width;
-
-        int red = 0;
-        int green = 0;
-        int blue = 0;
+        const int max_iterations = 128;
 
         float r0 = 0;
         float g0 = 0;
-        float b0 = 40;
+        float b0 = 30;
 
         float r1 = 200;
-        float g1 = 180;
-        float b1 = 0;
+        float g1 = 220;
+        float b1 = 255;
 
-        for (int y = 0; y < h; y++)
+        // Generate palette
+        int[] red = new int[256];
+        int[] green = new int[256];
+        int[] blue = new int[256];
+        for(int i = 0; i < 128; i++)
         {
-            for (int x = 0; x < w; x++)
+            float t = (float)i / 127;
+            red[i] = (int)((r1 - r0) * t + r0);
+            green[i] = (int)((g1 - g0) * t + g0);
+            blue[i] = (int)((b1 - b0) * t + b0);
+
+            red[255 - i] = red[i];
+            green[255 - i] = green[i];
+            blue[255 - i] = blue[i];
+        }
+
+        // Render image
+        double du = (1.0 / w) * zoom;
+        double dv = (1.0 / h) * zoom;
+        double v = - zoom / 2.0 + vc;
+        for (int y = 0; y < h; y++, v += dv)
+        {
+            double u = - zoom / 2.0 + uc;
+            for (int x = 0; x < w; x++, u += du)
             {
-                double u = (((double)x) / w) * zoom - zoom / 2f + uc;
-                double v = (((double)y) / h) * zoom - zoom / 2f + vc;
-                double cr = u;
-                double ci = v;
                 double zr = 0;
                 double zi = 0;
-
                 int i = 0;
-                while (true)
+                while ((Math.Abs(zr) < 2.0) && (Math.Abs(zi) < 2.0) && (i < max_iterations))
                 {
-                    double zr_n = zr * zr - zi * zi + cr;
-                    double zi_n = 2 * zi * zr + ci;
+                    double zr_n = zr * zr - zi * zi + u;
+                    double zi_n = 2 * zi * zr + v;
                     zr = zr_n;
                     zi = zi_n;
-
-                    double m = zr * zr + zi * zi;
-                    if (m > 4)
-                    {
-                        int iterations = i % 256;
-                        if(iterations >= 128)
-                        {
-                            iterations = 255 - iterations;
-                        }
-                        float t = ((float)(iterations % 128)) / 127;
-                        red = (int)((r1 - r0) * t + r0);
-                        green = (int)((g1 - g0) * t + g0);
-                        blue = (int)((b1 - b0) * t + b0);
-                        break;
-                    }
-                    if (i > 1000)
-                    {
-                        red = 0;
-                        green = 0;
-                        blue = 0;
-                        break;
-                    }
                     i++;
                 }
 
-                myBitmap.SetPixel(x, y, Color.FromArgb(red, green, blue));
+                if(i < max_iterations)
+                {
+                    int color_index = i % 256;
+                    myBitmap.SetPixel(x, y, Color.FromArgb(red[color_index], green[color_index], blue[color_index]));
+                }
+                else
+                {
+                    myBitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0));
+                }
             }
         }
     }
