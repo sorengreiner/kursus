@@ -10,9 +10,9 @@ public class MyForm : System.Windows.Forms.Form
     double zoom = 4.0f;
     double uc = 0.0f;
     double vc = 0.0f;
-    int image_width = 512;
-    int image_height = 512;
-    const int scale = 1;
+    int image_width = 1024;
+    int image_height = 1024;
+    const int scale = 2;
 
     private System.Windows.Forms.PictureBox pictureBox1;
 
@@ -86,14 +86,14 @@ public class MyForm : System.Windows.Forms.Form
     {
         int h = myBitmap.Height;
         int w = myBitmap.Width;
-        const int max_iterations = 128;
+        const int max_iterations = 1024;
 
-        float r0 = 0;
-        float g0 = 0;
-        float b0 = 30;
+        float r0 = 45;
+        float g0 = 210;
+        float b0 = 10;
 
         float r1 = 200;
-        float g1 = 220;
+        float g1 = 100;
         float b1 = 255;
 
         // Generate palette
